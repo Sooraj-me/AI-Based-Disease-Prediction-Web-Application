@@ -1,28 +1,25 @@
-import pickle
-import os
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Load dataset
+df = pd.read_csv("data/symptoms.csv")
+df.fillna(0, inplace=True)
 
-MODEL_PATH = os.path.join(BASE_DIR, "models", "random_forest.pkl")
-ENCODER_PATH = os.path.join(BASE_DIR, "models", "label_encoder.pkl")
-FEATURES_PATH = os.path.join(BASE_DIR, "models", "features.pkl")
+X = df.drop("disease", axis=1)
+y_raw = df["disease"]
 
-with open(MODEL_PATH, "rb") as f:
-    model = pickle.load(f)
+# Encode labels
+label_encoder = LabelEncoder()
+y = label_encoder.fit_transform(y_raw)
 
-with open(ENCODER_PATH, "rb") as f:
-    label_encoder = pickle.load(f)
-
-with open(FEATURES_PATH, "rb") as f:
-    features = pickle.load(f)
+# Train model (on app startup)
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X, y)
 
 def predict_disease(symptom_dict):
-    input_df = pd.DataFrame([[symptom_dict[f] for f in features]],
-                            columns=features)
-
+    input_df = pd.DataFrame([symptom_dict], columns=X.columns)
     probs = model.predict_proba(input_df)[0]
-    best_index = probs.argmax()
-    disease = label_encoder.inverse_transform([best_index])[0]
-
+    best_idx = probs.argmax()
+    disease = label_encoder.inverse_transform([best_idx])[0]
     return disease, probs
