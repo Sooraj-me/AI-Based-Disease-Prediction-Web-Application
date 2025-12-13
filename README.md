@@ -81,7 +81,7 @@ Model performance is evaluated using **train-test split** and **accuracy score**
 
 ```bash
 git clone https://github.com/Sooraj-me/AI-Based-Disease-Prediction-Web-Application.git
-cd disease-prediction-app
+cd AI-Based-Disease-Prediction-Web-Application
 ```
 
 ### 2️⃣ Install Dependencies
