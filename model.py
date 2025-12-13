@@ -6,10 +6,13 @@ from sklearn.ensemble import RandomForestClassifier
 df = pd.read_csv("data/symptoms.csv")
 df.fillna(0, inplace=True)
 
-# -----------------------------
-# Automatically detect target column
-# Assumes last column is the disease/label
-# -----------------------------
+# Strip spaces from column names
+df.columns = df.columns.str.strip()
+
+# Debug: print columns to logs
+print("CSV Columns:", df.columns.tolist())
+
+# Use last column as target
 target_col = df.columns[-1]
 
 # Features and labels
@@ -20,7 +23,7 @@ y_raw = df[target_col]
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(y_raw)
 
-# Train Random Forest model at runtime
+# Train model at runtime
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X, y)
 
@@ -30,7 +33,6 @@ def predict_disease(symptom_dict):
     Input: symptom_dict -> dictionary with symptom columns as keys and 0/1 as values
     Output: tuple -> (predicted disease string, probabilities array)
     """
-    # Ensure input dataframe columns match training features
     input_df = pd.DataFrame([symptom_dict], columns=X.columns)
     probs = model.predict_proba(input_df)[0]
     best_idx = probs.argmax()
