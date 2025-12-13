@@ -6,30 +6,27 @@ from sklearn.ensemble import RandomForestClassifier
 df = pd.read_csv("data/symptoms.csv")
 df.fillna(0, inplace=True)
 
-# Strip spaces and lowercase column names
+# Clean column names
 df.columns = df.columns.str.strip().str.lower()
 
 # Debug: print columns
 print("CSV Columns:", df.columns.tolist())
 
-# Use last column as target
+# Assume last column is target
 target_col = df.columns[-1]
 
-# Features and labels
-X = df.drop(columns=[target_col], errors="ignore")
-y_raw = df[target_col] if target_col in df.columns else None
+# Extract features
+X = df.drop(columns=[target_col], errors='ignore')
 
-if y_raw is None:
-    raise KeyError(f"Target column '{target_col}' not found in CSV. Columns: {df.columns.tolist()}")
+# Convert all features to numeric (0/1)
+X = X.apply(pd.to_numeric, errors='coerce').fillna(0).astype(int)
 
-# Ensure all features are numeric
-X = X.apply(pd.to_numeric, errors='coerce').fillna(0)
-
-# Encode labels
+# Extract labels
+y_raw = df[target_col]
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(y_raw)
 
-# Train Random Forest at runtime
+# Train RandomForest
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X, y)
 
@@ -40,10 +37,10 @@ def predict_disease(symptom_dict):
     Output: tuple -> (predicted disease string, probabilities array)
     """
     input_df = pd.DataFrame([symptom_dict])
-    input_df = input_df.reindex(columns=X.columns, fill_value=0)
 
-    # Ensure numeric
-    input_df = input_df.apply(pd.to_numeric, errors='coerce').fillna(0)
+    # Align columns with training features
+    input_df = input_df.reindex(columns=X.columns, fill_value=0)
+    input_df = input_df.apply(pd.to_numeric, errors='coerce').fillna(0).astype(int)
 
     probs = model.predict_proba(input_df)[0]
     best_idx = probs.argmax()
