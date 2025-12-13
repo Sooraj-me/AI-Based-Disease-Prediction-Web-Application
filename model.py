@@ -6,24 +6,27 @@ from sklearn.ensemble import RandomForestClassifier
 df = pd.read_csv("data/symptoms.csv")
 df.fillna(0, inplace=True)
 
-# Strip spaces from column names
-df.columns = df.columns.str.strip()
+# Strip spaces and lowercase column names
+df.columns = df.columns.str.strip().str.lower()
 
-# Debug: print columns to logs
+# DEBUG: print columns to logs
 print("CSV Columns:", df.columns.tolist())
 
-# Use last column as target
+# Assume the last column is target
 target_col = df.columns[-1]
 
 # Features and labels
-X = df.drop(target_col, axis=1)
-y_raw = df[target_col]
+X = df.drop(columns=[target_col], errors="ignore")  # <--- ignore if target not found
+y_raw = df[target_col] if target_col in df.columns else None
+
+if y_raw is None:
+    raise KeyError(f"Target column '{target_col}' not found in CSV. Columns: {df.columns.tolist()}")
 
 # Encode labels
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(y_raw)
 
-# Train model at runtime
+# Train Random Forest at runtime
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X, y)
 
@@ -33,7 +36,10 @@ def predict_disease(symptom_dict):
     Input: symptom_dict -> dictionary with symptom columns as keys and 0/1 as values
     Output: tuple -> (predicted disease string, probabilities array)
     """
-    input_df = pd.DataFrame([symptom_dict], columns=X.columns)
+    # Align input columns with training features
+    input_df = pd.DataFrame([symptom_dict])
+    input_df = input_df.reindex(columns=X.columns, fill_value=0)
+
     probs = model.predict_proba(input_df)[0]
     best_idx = probs.argmax()
     disease = label_encoder.inverse_transform([best_idx])[0]
