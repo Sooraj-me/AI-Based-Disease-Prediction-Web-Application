@@ -6,22 +6,22 @@ from sklearn.ensemble import RandomForestClassifier
 df = pd.read_csv("data/symptoms.csv")
 df.fillna(0, inplace=True)
 
-# Clean column names
+# Strip spaces and lowercase column names
 df.columns = df.columns.str.strip().str.lower()
 
-# Debug: print columns
+# Debug: print columns in logs
 print("CSV Columns:", df.columns.tolist())
 
-# Assume last column is target
+# Use last column as target
 target_col = df.columns[-1]
 
-# Extract features
+# Features: all columns except target
 X = df.drop(columns=[target_col], errors='ignore')
 
-# Convert all features to numeric (0/1)
+# Convert all feature columns to numeric (0/1), ignore errors
 X = X.apply(pd.to_numeric, errors='coerce').fillna(0).astype(int)
 
-# Extract labels
+# Labels
 y_raw = df[target_col]
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(y_raw)
