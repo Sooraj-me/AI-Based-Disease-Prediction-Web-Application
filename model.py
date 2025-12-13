@@ -7,10 +7,10 @@ df = pd.read_csv("data/symptoms.csv")
 df.fillna(0, inplace=True)
 
 # -----------------------------
-# Set the target column here:
-# Replace 'prognosis' with the actual target column from your CSV
+# Automatically detect target column
+# Assumes last column is the disease/label
 # -----------------------------
-target_col = "prognosis"  
+target_col = df.columns[-1]
 
 # Features and labels
 X = df.drop(target_col, axis=1)
@@ -20,7 +20,7 @@ y_raw = df[target_col]
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(y_raw)
 
-# Train Random Forest at runtime
+# Train Random Forest model at runtime
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X, y)
 
@@ -30,6 +30,7 @@ def predict_disease(symptom_dict):
     Input: symptom_dict -> dictionary with symptom columns as keys and 0/1 as values
     Output: tuple -> (predicted disease string, probabilities array)
     """
+    # Ensure input dataframe columns match training features
     input_df = pd.DataFrame([symptom_dict], columns=X.columns)
     probs = model.predict_proba(input_df)[0]
     best_idx = probs.argmax()
