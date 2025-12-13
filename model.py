@@ -6,14 +6,24 @@ from sklearn.ensemble import RandomForestClassifier
 df = pd.read_csv("data/symptoms.csv")
 df.fillna(0, inplace=True)
 
-X = df.drop("disease", axis=1)
-y_raw = df["disease"]
+# 🔍 Detect target column automatically
+if "disease" in df.columns:
+    target_col = "disease"
+elif "prognosis" in df.columns:
+    target_col = "prognosis"
+else:
+    raise KeyError(
+        f"Target column not found. Available columns: {list(df.columns)}"
+    )
+
+X = df.drop(target_col, axis=1)
+y_raw = df[target_col]
 
 # Encode labels
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(y_raw)
 
-# Train model (on app startup)
+# Train model at runtime
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X, y)
 
