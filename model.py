@@ -1,25 +1,29 @@
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
+import numpy as np
 
 # Load dataset
 df = pd.read_csv("data/symptoms.csv")
 df.fillna(0, inplace=True)
 
-# Strip spaces and lowercase column names
+# Clean column names
 df.columns = df.columns.str.strip().str.lower()
 
-# Debug: print columns in logs
+# Debug: print columns
 print("CSV Columns:", df.columns.tolist())
 
-# Use last column as target
+# Assume last column is target
 target_col = df.columns[-1]
 
-# Features: all columns except target
+# Extract features
 X = df.drop(columns=[target_col], errors='ignore')
 
-# Convert all feature columns to numeric (0/1), ignore errors
-X = X.apply(pd.to_numeric, errors='coerce').fillna(0).astype(int)
+# Convert all features to numeric (0/1)
+X = X.apply(pd.to_numeric, errors='coerce').fillna(0)
+
+# Ensure X is a numpy array of float
+X = np.array(X, dtype=float)
 
 # Labels
 y_raw = df[target_col]
@@ -39,10 +43,11 @@ def predict_disease(symptom_dict):
     input_df = pd.DataFrame([symptom_dict])
 
     # Align columns with training features
-    input_df = input_df.reindex(columns=X.columns, fill_value=0)
-    input_df = input_df.apply(pd.to_numeric, errors='coerce').fillna(0).astype(int)
+    input_df = input_df.reindex(columns=df.columns[:-1], fill_value=0)
+    input_df = input_df.apply(pd.to_numeric, errors='coerce').fillna(0)
+    input_array = np.array(input_df, dtype=float)
 
-    probs = model.predict_proba(input_df)[0]
+    probs = model.predict_proba(input_array)[0]
     best_idx = probs.argmax()
     disease = label_encoder.inverse_transform([best_idx])[0]
     return disease, probs
