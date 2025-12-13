@@ -80,7 +80,7 @@ Model performance is evaluated using **train-test split** and **accuracy score**
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/disease-prediction-app.git
+git clone https://github.com/Sooraj-me/AI-Based-Disease-Prediction-Web-Application.git
 cd disease-prediction-app
 ```
 
