@@ -9,18 +9,21 @@ df.fillna(0, inplace=True)
 # Strip spaces and lowercase column names
 df.columns = df.columns.str.strip().str.lower()
 
-# DEBUG: print columns to logs
+# Debug: print columns
 print("CSV Columns:", df.columns.tolist())
 
-# Assume the last column is target
+# Use last column as target
 target_col = df.columns[-1]
 
 # Features and labels
-X = df.drop(columns=[target_col], errors="ignore")  # <--- ignore if target not found
+X = df.drop(columns=[target_col], errors="ignore")
 y_raw = df[target_col] if target_col in df.columns else None
 
 if y_raw is None:
     raise KeyError(f"Target column '{target_col}' not found in CSV. Columns: {df.columns.tolist()}")
+
+# Ensure all features are numeric
+X = X.apply(pd.to_numeric, errors='coerce').fillna(0)
 
 # Encode labels
 label_encoder = LabelEncoder()
@@ -36,9 +39,11 @@ def predict_disease(symptom_dict):
     Input: symptom_dict -> dictionary with symptom columns as keys and 0/1 as values
     Output: tuple -> (predicted disease string, probabilities array)
     """
-    # Align input columns with training features
     input_df = pd.DataFrame([symptom_dict])
     input_df = input_df.reindex(columns=X.columns, fill_value=0)
+
+    # Ensure numeric
+    input_df = input_df.apply(pd.to_numeric, errors='coerce').fillna(0)
 
     probs = model.predict_proba(input_df)[0]
     best_idx = probs.argmax()
