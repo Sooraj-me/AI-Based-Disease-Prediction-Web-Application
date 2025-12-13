@@ -1,1 +1,0 @@
-with open(MODEL_PATH, "rb") as f:
