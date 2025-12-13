@@ -1,9 +1,8 @@
 import pickle
-import pandas as pd
+import os
 
-model = pickle.load(open("RandomForest.pkl", "rb"))
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "RandomForest.pkl")
 
-def predict_disease(symptom_dict):
-    df = pd.DataFrame([symptom_dict])
-    probs = model.predict_proba(df)[0]
-    return probs
+with open(MODEL_PATH, "rb") as f:
+    model = pickle.load(f)
+
